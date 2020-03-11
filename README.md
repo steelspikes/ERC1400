@@ -339,6 +339,17 @@ $ yarn truffle migrate --network ropsten
 ```
 
 
+### EXTRA NDAX STEP
+How to run the tests
+Run ganache:
+```
+ganache-cli -i 15 -l 9000000
+```
+Run the unit tests with truffle (already globally downloaded)
+```
+truffle test
+```
+
 ## APPENDIX
 
 ### How to get a MNEMONIC?
