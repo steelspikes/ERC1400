@@ -349,10 +349,14 @@ Run the unit tests with truffle (already globally downloaded)
 ```
 truffle test
 ```
-
-To get a compiled ABI to connect web3, install solc and generate in root directory:
+To mix all the necessities of the Backward compatible ERC1400ERC20 (File to create bin/abi and validate source code in etherscan
 ```
-solc --combined-json abi,bin contracts/token/ERC20/ERC1400ERC20.sol > ERC1400ERC20Output.json
+yarn build:ERC1400ERC20
+```
+
+To get a compiled & combined ABI to connect web3, install solc and generate in root directory:
+```
+solc --combined-json abi,bin ERC1400ERC20.sol > ERC1400ERC20Output.json
 ```
 
 ## APPENDIX
