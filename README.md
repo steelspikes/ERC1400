@@ -339,7 +339,7 @@ $ yarn truffle migrate --network ropsten
 ```
 
 
-### EXTRA NDAX STEP
+### EXTRA STEPS
 How to run the tests
 Run ganache:
 ```
@@ -348,6 +348,11 @@ ganache-cli -i 15 -l 9000000
 Run the unit tests with truffle (already globally downloaded)
 ```
 truffle test
+```
+
+To get a compiled ABI to connect web3, install solc and generate in root directory:
+```
+solc --combined-json abi,bin contracts/token/ERC20/ERC1400ERC20.sol > ERC1400ERC20Output.json
 ```
 
 ## APPENDIX
