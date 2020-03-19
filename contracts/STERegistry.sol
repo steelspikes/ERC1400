@@ -50,7 +50,6 @@ contract STERegistry is EternalStorage, Proxy {
 
        struct SecurityTokenData {
            string ticker;
-           string tokenDetails;
            uint256 deployedAt;
        }
 
@@ -273,9 +272,10 @@ contract STERegistry is EternalStorage, Proxy {
      * @param _expiryDate is the expiry date for the ticker
      * @param _status is the token deployment status
      */
-    function modifyExistingTicker(
+    function modifyTicker(
         address _owner,
         string memory _ticker,
+        string memory _tokenName,
         uint256 _registrationDate,
         uint256 _expiryDate,
         bool _status
@@ -291,22 +291,6 @@ contract STERegistry is EternalStorage, Proxy {
         _modifyTicker(_owner, ticker, _registrationDate, _expiryDate, _status);
     }
 
-    /**
-     * @dev This function is just for backwards compatibility
-     */
-    function modifyTicker(
-        address _owner,
-        string calldata _ticker,
-        string calldata _tokenName,
-        uint256 _registrationDate,
-        uint256 _expiryDate,
-        bool _status
-    )
-        external
-    {
-        modifyExistingTicker(_owner, _ticker, _registrationDate, _expiryDate, _status);
-        emit RegisterTicker(_owner, _ticker, _tokenName, now, now.add(getUintValue(EXPIRYLIMIT)), false, 0);
-    }
 
     /**
      * @notice Internal -- Modifies the ticker details.
@@ -468,7 +452,6 @@ contract STERegistry is EternalStorage, Proxy {
      * @notice Deploys an instance of a new Security Token and records it to the registry
      * @param _name is the name of the token
      * @param _ticker is the ticker symbol of the security token
-     * @param _tokenDetails is the off-chain details of the token
      * @param _divisible is whether or not the token is divisible
      * @param _treasuryWallet Ethereum address which will holds the STs.
      * @param _protocolVersion Version of securityToken contract
@@ -478,8 +461,11 @@ contract STERegistry is EternalStorage, Proxy {
     function generateNewSecurityToken(
         string memory _name,
         string memory _ticker,
-        string memory _tokenDetails,
         bool _divisible,
+        address[] memory _controllers,
+        address _certificateSigner,
+        bool _certificateActivated,
+        bytes32[] memory _defaultPartitions,
         address _treasuryWallet,
         uint256 _protocolVersion
     )
@@ -500,7 +486,7 @@ contract STERegistry is EternalStorage, Proxy {
         /*solium-disable-next-line security/no-block-members*/
         require(getUintValue(Encoder.getKey("registeredTickers_expiryDate", _ticker)) >= now, "Ticker expired");
         address newSecurityTokenAddress =
-            _deployToken(_name, _ticker, _tokenDetails, issuer, _divisible, _treasuryWallet, _protocolVersion);
+            _deployToken(_name, _ticker, issuer, _divisible, controllers, certificateSigner, certificateActivated, _defaultPartitions, _treasuryWallet, _protocolVersion);
         if (_protocolVersion == VersionUtils.pack(2, 0, 0)) {
             // For backwards compatibilty. Should be removed with an update when we disable st 2.0 generation.
             emit NewSecurityToken(
@@ -517,9 +503,12 @@ contract STERegistry is EternalStorage, Proxy {
     function _deployToken(
         string memory _name,
         string memory _ticker,
-        string memory _tokenDetails,
         address _issuer,
         bool _divisible,
+        address[] memory _controllers,
+        address _certificateSigner,
+        bool _certificateActivated,
+        bytes32[] memory _defaultPartitions,
         address _wallet,
         uint256 _protocolVersion
     )
@@ -535,14 +524,17 @@ contract STERegistry is EternalStorage, Proxy {
             _name,
             _ticker,
             18,
-            _tokenDetails,
             _issuer,
             _divisible,
+            _controllers,
+            _certificateSigner,
+            _certificateActivated,
+            _defaultPartitions,
             _wallet
         );
 
         /*solium-disable-next-line security/no-block-members*/
-        _storeSecurityTokenData(newSecurityTokenAddress, _ticker, _tokenDetails, now);
+        _storeSecurityTokenData(newSecurityTokenAddress, _ticker, now);
         set(Encoder.getKey("tickerToSecurityToken", _ticker), newSecurityTokenAddress);
     }
 
@@ -551,14 +543,12 @@ contract STERegistry is EternalStorage, Proxy {
      * @param _ticker is the ticker symbol of the security token
      * @param _owner is the owner of the token
      * @param _securityToken is the address of the securityToken
-     * @param _tokenDetails is the off-chain details of the token
      * @param _deployedAt is the timestamp at which the security token is deployed
      */
     function modifyExistingSecurityToken(
         string memory _ticker,
         address _owner,
         address _securityToken,
-        string memory _tokenDetails,
         uint256 _deployedAt
     )
         public
@@ -577,7 +567,7 @@ contract STERegistry is EternalStorage, Proxy {
         }
         set(Encoder.getKey("tickerToSecurityToken", ticker), _securityToken);
         _modifyTicker(_owner, ticker, registrationTime, expiryTime, true);
-        _storeSecurityTokenData(_securityToken, ticker, _tokenDetails, _deployedAt);
+        _storeSecurityTokenData(_securityToken, ticker, _deployedAt);
         emit NewSecurityToken(
             ticker, ISecurityToken(_securityToken).name(), _securityToken, _owner, _deployedAt, msg.sender, true, uint256(0), uint256(0), 0
         );
@@ -591,12 +581,11 @@ contract STERegistry is EternalStorage, Proxy {
         string calldata _ticker,
         address _owner,
         address _securityToken,
-        string calldata _tokenDetails,
         uint256 _deployedAt
     )
         external
     {
-        modifyExistingSecurityToken(_ticker, _owner, _securityToken, _tokenDetails, _deployedAt);
+        modifyExistingSecurityToken(_ticker, _owner, _securityToken, _deployedAt);
     }
 
     /**
@@ -605,11 +594,9 @@ contract STERegistry is EternalStorage, Proxy {
     function _storeSecurityTokenData(
         address _securityToken,
         string memory _ticker,
-        string memory _tokenDetails,
         uint256 _deployedAt
     ) internal {
         set(Encoder.getKey("securityTokens_ticker", _securityToken), _ticker);
-        set(Encoder.getKey("securityTokens_tokenDetails", _securityToken), _tokenDetails);
         set(Encoder.getKey("securityTokens_deployedAt", _securityToken), _deployedAt);
     }
 

@@ -72,7 +72,6 @@ interface ISTERegistry {
      * @notice Deploys an instance of a new Security Token and records it to the registry
      * @param _name is the name of the token
      * @param _ticker is the ticker symbol of the security token
-     * @param _tokenDetails is the off-chain details of the token
      * @param _divisible is whether or not the token is divisible
      * @param _treasuryWallet Ethereum address which will holds the STs.
      * @param _protocolVersion Version of securityToken contract
@@ -82,8 +81,11 @@ interface ISTERegistry {
     function generateNewSecurityToken(
         string calldata _name,
         string calldata _ticker,
-        string calldata _tokenDetails,
         bool _divisible,
+        address[] calldata _controllers,
+        address _certificateSigner,
+        bool _certificateActivated,
+        bytes32[] calldata _defaultPartitions,
         address _treasuryWallet,
         uint256 _protocolVersion
     )
@@ -95,13 +97,11 @@ interface ISTERegistry {
      * @dev This function needs to be in STR 3.0. Defined public to avoid stack overflow
      * @param _name is the name of the token
      * @param _ticker is the ticker symbol of the security token
-     * @param _tokenDetails is the off-chain details of the token
      * @param _divisible is whether or not the token is divisible
      */
     function refreshSecurityToken(
         string calldata _name,
         string calldata _ticker,
-        string calldata _tokenDetails,
         bool _divisible,
         address _treasuryWallet
     )
@@ -113,7 +113,6 @@ interface ISTERegistry {
      * @param _ticker Ticker of the security token
      * @param _owner Owner of the token
      * @param _securityToken Address of the securityToken
-     * @param _tokenDetails Off-chain details of the token
      * @param _deployedAt Timestamp at which security token comes deployed on the ethereum blockchain
      */
     function modifySecurityToken(
@@ -121,7 +120,6 @@ interface ISTERegistry {
         string calldata _ticker,
         address _owner,
         address _securityToken,
-        string calldata _tokenDetails,
         uint256 _deployedAt
     )
     external;
@@ -131,14 +129,12 @@ interface ISTERegistry {
      * @param _ticker is the ticker symbol of the security token
      * @param _owner is the owner of the token
      * @param _securityToken is the address of the securityToken
-     * @param _tokenDetails is the off-chain details of the token
      * @param _deployedAt is the timestamp at which the security token is deployed
      */
     function modifyExistingSecurityToken(
         string calldata _ticker,
         address _owner,
         address _securityToken,
-        string calldata _tokenDetails,
         uint256 _deployedAt
     )
         external;
@@ -171,14 +167,6 @@ interface ISTERegistry {
      */
     function registerTicker(address _owner, string calldata _ticker, string calldata _tokenName) external;
 
-    /**
-     * @notice Registers the token ticker to the selected owner
-     * @notice Once the token ticker is registered to its owner then no other issuer can claim
-     * @notice its ownership. If the ticker expires and its issuer hasn't used it, then someone else can take it.
-     * @param _owner is address of the owner of the token
-     * @param _ticker is unique token ticker
-     */
-    function registerNewTicker(address _owner, string calldata _ticker) external;
 
     /**
     * @notice Check that Security Token is registered
@@ -211,7 +199,6 @@ interface ISTERegistry {
     function getSecurityTokenData(address _securityToken) external view returns (
         string memory tokenSymbol,
         address tokenAddress,
-        string memory tokenDetails,
         uint256 tokenTime
     );
 

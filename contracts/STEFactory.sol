@@ -38,7 +38,6 @@ contract STFactory is ISTFactory, Ownable {
         public
     {
         require(_logicContract != address(0), "Invalid Address");
-        require(_transferManagerFactory != address(0), "Invalid Address");
         require(_dataStoreFactory != address(0), "Invalid Address");
         require(_initializationData.length > 4, "Invalid Initialization");
         // @TODO shall we add a proper, version string validation?
@@ -60,10 +59,13 @@ contract STFactory is ISTFactory, Ownable {
     function deployToken(
         string calldata _name,
         string calldata _symbol,
-        uint8 _decimals,
-        string calldata _tokenDetails,
-        address _issuer,
+        uint8 _granularity,
+        address _owner,
         bool _divisible,
+        address[] memory controllers,
+        address certificateSigner,
+        bool certificateActivated,
+        bytes32[] memory defaultPartitions
         address _treasuryWallet
     )
         external
@@ -73,8 +75,11 @@ contract STFactory is ISTFactory, Ownable {
             _name,
             _symbol,
             _decimals,
-            _tokenDetails,
-            _divisible
+            _divisible,
+            controllers,
+            certificateSigner,
+            certificateActivated,
+            defaultPartitions
         );
         //NB When dataStore is generated, the security token address is automatically set via the constructor in DataStoreProxy.
         if (address(dataStoreFactory) != address(0)) {
@@ -84,24 +89,26 @@ contract STFactory is ISTFactory, Ownable {
         if (transferManagerFactory != address(0)) {
             ISecurityToken(securityToken).addModule(transferManagerFactory, "", 0, 0, false);
         }
-        IOwnable(securityToken).transferOwnership(_issuer);
+        IOwnable(securityToken).transferOwnership(_owner);
         return securityToken;
     }
 
     function _deploy(
         string memory _name,
         string memory _symbol,
-        uint8 _decimals,
-        string memory _tokenDetails,
-        bool _divisible
+        uint8 _granularity,
+        bool _divisible,
+        address[] memory controllers,
+        address certificateSigner,
+        bool certificateActivated,
+        bytes32[] memory defaultPartitions
     ) internal returns(address) {
         // Creates proxy contract and sets some initial storage
         SecurityTokenProxy proxy = new SecurityTokenProxy(
             _name,
             _symbol,
-            _decimals,
-            _divisible ? 1 : uint256(10) ** _decimals,
-            _tokenDetails,
+            _granularity,
+            _divisible ? 1 : uint256(10) ** _granularity,
         );
         // Sets logic contract
         proxy.upgradeTo(logicContracts[latestUpgrade].version, logicContracts[latestUpgrade].logicContract);

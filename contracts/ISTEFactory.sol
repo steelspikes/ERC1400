@@ -10,7 +10,7 @@ interface ISTFactory {
         address indexed _securityToken,
         uint256 indexed _version
     );
-    event DefaultTransferManagerUpdated(address indexed _oldTransferManagerFactory, address indexed _newTransferManagerFactory);
+
     event DefaultDataStoreUpdated(address indexed _oldDataStoreFactory, address indexed _newDataStoreFactory);
 
     /**
@@ -18,17 +18,14 @@ interface ISTFactory {
      * Future versions of the proxy can attach different modules or pass some other paramters.
      * @param _name is the name of the Security token
      * @param _symbol is the symbol of the Security Token
-     * @param _decimals is the number of decimals of the Security Token
-     * @param _tokenDetails is the off-chain data associated with the Security Token
-     * @param _issuer is the owner of the Security Token
+     * @param _granularity is the number of granularity of the Security Token
      * @param _divisible whether the token is divisible or not
      * @param _treasuryWallet Ethereum address which will holds the STs.
      */
     function deployToken(
         string calldata _name,
         string calldata _symbol,
-        uint8 _decimals,
-        string calldata _tokenDetails,
+        uint8 _granularity,
         address _issuer,
         bool _divisible,
         address _treasuryWallet 
@@ -50,13 +47,6 @@ interface ISTFactory {
      * @param _maxModuleType maximum module type enumeration
      */
     function upgradeToken(uint8 _maxModuleType) external;
-
-    /**
-     * @notice Used to set a new default transfer manager
-     * @dev Setting this to address(0) means don't deploy a default TM
-     * @param _transferManagerFactory Address of new default transfer manager factory
-     */
-    function updateDefaultTransferManager(address _transferManagerFactory) external;
 
     /**
      * @notice Used to set a new default data store
