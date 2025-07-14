@@ -16,6 +16,12 @@ const ropstenProvider = process.env.SOLIDITY_COVERAGE
   ? undefined
   : infuraProvider('ropsten');
 
+const sepoliaProvider = process.env.SOLIDITY_COVERAGE
+  ? undefined
+  : infuraProvider('sepolia');
+
+console.log(sepoliaProvider)
+
 module.exports = {
   networks: {
     development: {
@@ -37,9 +43,14 @@ module.exports = {
       gasPrice: 0x01,
     },
     ganache: {
-      host: 'localhost',
-      port: 7545,
+      host: 'host.docker.internal',
+      port: 8545,
       network_id: '*', // eslint-disable-line camelcase
+      from: '0x8add74e1EC339A3FD4d59Dce45aa9fdE4be54D80'
+    },
+    sepolia: {
+      provider: sepoliaProvider,
+      network_id: 11155111
     },
     dotEnvNetwork: {
       provider: providerWithMnemonic(

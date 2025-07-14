@@ -1,0 +1,2 @@
+#!/bin/bash
+docker stop erc1400-container || true && docker rm erc1400-container || true && docker build -t erc1400-image . && docker run -dit --add-host=host.docker.internal:host-gateway --name "erc1400-container" erc1400-image && docker exec -it erc1400-container sh
